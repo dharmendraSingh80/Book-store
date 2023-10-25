@@ -10,28 +10,40 @@ export default class ProductController {
   }
 
   getAddForm(req, res) {
-    return res.render("new-product");
+    return res.render("new-product", { errorMessage: null });
   }
   addNewProduct(req, res) {
-    const { name, price, imageUrl } = req.body;
-
-    let errors = [];
-    if (!name || name.trim() == "") {
-      errors.push("Name is Required");
-    }
-    if (!price || parseFloat(price) < 1) {
-      errors.push("Price must be a positive value");
-    }
-    try {
-      const validUrl = new URL(imageUrl);
-    } catch (error) {
-      errors.push("URL is invalid");
-    }
-
-    if (errors.length > 0) {
-      return res.render("new-product", { errorMessage: errors[0] });
-    }
     ProductModel.add(req.body);
+    let products = ProductModel.get();
+    return res.render("products", { products: products });
+  }
+
+  getUpdateProductView(req, res, next) {
+    const { id } = req.params;
+    const productFound = ProductModel.getById(id);
+    if (productFound) {
+      res.render("update-product", {
+        product: productFound,
+        errorMessage: null,
+      });
+    } else {
+      res.status(401).send("Product not found");
+    }
+  }
+
+  postUpdateProduct(req, res) {
+    ProductModel.update(req.body);
+    let products = ProductModel.get();
+    return res.render("products", { products: products });
+  }
+
+  deleteProduct(req, res) {
+    const id = req.params.id;
+    const productFound = ProductModel.getById(id);
+    if (!productFound) {
+      return res.status(401).send("Product not found");
+    }
+    ProductModel.delete(id);
     let products = ProductModel.get();
     return res.render("products", { products: products });
   }

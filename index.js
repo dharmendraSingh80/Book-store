@@ -7,11 +7,14 @@ import validationMiddleware from "./src/middlewares/validation.middleware.js";
 import { uploadFile } from "./src/middlewares/file-upload.middlware.js";
 import session from "express-session";
 import { auth } from "./src/middlewares/auth.middleware.js";
+import cookieParser from "cookie-parser";
+import { setlastVisit } from "./src/middlewares/lastVisit.middleware.js";
 
 const server = express();
 
 server.use(express.static("public"));
-
+server.use(cookieParser());
+// server.use(setlastVisit);
 server.use(
   session({
     secret: "SecretKey",
@@ -43,7 +46,7 @@ server.post("/register", usersController.postRegister);
 server.post("/login", usersController.postLogin);
 server.get("/logout", usersController.logout);
 
-server.get("/", auth, productController.getProducts);
+server.get("/", setlastVisit, auth, productController.getProducts);
 
 server.get("/new", auth, productController.getAddForm);
 
